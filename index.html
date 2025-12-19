@@ -1,31 +1,225 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hadia AI</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Ajout de React et Babel pour fonctionner sans build -->
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hadia AI - Studio Créatif</title>
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Babel pour comprendre le JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Configuration Tailwind pour le thème Dark Studio -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#050505',
+                        zinc: '#18181b',
+                        indigo: '#6366f1',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
 </head>
-<body class="min-h-screen bg-gray-50 flex items-center justify-center">
-  <div id="root"></div>
+<body>
+    <div id="root"></div>
 
-  <!-- Ton code React écrit directement ici -->
-  <script type="text/babel">
-    function App() {
-      return (
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-blue-600 mb-4">Hadia AI</h1>
-          <p className="text-gray-700">Le projet est en ligne ! 🚀</p>
-        </div>
-      );
-    }
+    <script type="text/babel">
+        const { useState, useEffect } = React;
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+        function App() {
+            // --- États (State) ---
+            const [credits, setCredits] = useState(10); // Système de crédits
+            const [activeTab, setActiveTab] = useState('image'); // 'image' ou 'video'
+            const [selectedImage, setSelectedImage] = useState(null); // Logo uploadé
+            const [prompt, setPrompt] = useState(''); // Prompt IA
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [result, setResult] = useState(null); // Résultat généré
+
+            // --- Fonctions ---
+            const handleImageUpload = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setSelectedImage(reader.result);
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const generateContent = () => {
+                const cost = activeTab === 'image' ? 1 : 5;
+                
+                if (credits < cost) {
+                    alert("Crédits insuffisants ! Recharchez votre compte.");
+                    return;
+                }
+
+                if (!selectedImage) {
+                    alert("Veuillez uploader un logo d'abord.");
+                    return;
+                }
+
+                setIsGenerating(true);
+                setCredits(prev => prev - cost);
+
+                // SIMULATION DE L'IA (Gemini/Veo)
+                // Ici, on simule un délai de 3 secondes pour l'effet "Calcul"
+                setTimeout(() => {
+                    setIsGenerating(false);
+                    // Pour la démo, on renvoie l'image originale avec un filtre simulé
+                    setResult(selectedImage); 
+                    alert(activeTab === 'image' ? "Image générée avec succès !" : "Vidéo générée !");
+                }, 3000);
+            };
+
+            const addCredits = () => {
+                setCredits(prev => prev + 50);
+                alert("50 Crédits ajoutés (Simulation paiement)");
+            };
+
+            // --- Interface (JSX) ---
+            return (
+                <div className="min-h-screen flex flex-col font-sans text-gray-200 selection:bg-indigo-500 selection:text-white">
+                    
+                    {/* Header */}
+                    <header className="glass sticky top-0 z-50 px-6 py-4 flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                                <i data-lucide="sparkles" class="text-white w-5 h-5"></i>
+                            </div>
+                            <h1 className="text-xl font-bold tracking-tight">Hadia AI</h1>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                            <div className="glass px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2">
+                                <span className="text-indigo-400">♦</span> {credits} Crédits
+                            </div>
+                            <button onClick={addCredits} className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm transition font-medium">
+                                + Recharger
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* Main Content */}
+                    <main className="flex-1 flex flex-col md:flex-row gap-6 p-4 max-w-7xl mx-auto w-full">
+                        
+                        {/* Sidebar de Gauche (Contrôles) */}
+                        <aside className="w-full md:w-1/3 flex flex-col gap-6">
+                            
+                            {/* Sélecteur Mode */}
+                            <div className="glass p-1 rounded-xl flex gap-1">
+                                <button 
+                                    onClick={() => setActiveTab('image')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'image' ? 'bg-zinc-800 text-white' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Image Gen (1c)
+                                </button>
+                                <button 
+                                    onClick={() => setActiveTab('video')}
+                                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${activeTab === 'video' ? 'bg-zinc-800 text-white' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    Vidéo Veo (5c)
+                                </button>
+                            </div>
+
+                            {/* Upload Area */}
+                            <div className="glass p-6 rounded-2xl flex flex-col gap-4">
+                                <h2 className="text-lg font-semibold">1. Votre Logo</h2>
+                                <label className="border-2 border-dashed border-zinc-700 hover:border-indigo-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition group">
+                                    <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={handleImageUpload} />
+                                    {selectedImage ? (
+                                        <img src={selectedImage} alt="Preview" className="h-20 object-contain" />
+                                    ) : (
+                                        <>
+                                            <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center mb-2 group-hover:bg-indigo-900">
+                                                <span className="text-2xl text-gray-400 group-hover:text-indigo-400">+</span>
+                                            </div>
+                                            <p className="text-sm text-gray-500">Glisser ou cliquer (PNG)</p>
+                                        </>
+                                    )}
+                                </label>
+                            </div>
+
+                            {/* Prompt Area */}
+                            <div className="glass p-6 rounded-2xl flex flex-col gap-4">
+                                <h2 className="text-lg font-semibold">2. Instructions IA</h2>
+                                <textarea 
+                                    className="w-full bg-black/50 border border-zinc-700 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 text-white placeholder-gray-600 resize-none h-32"
+                                    placeholder="Ex: Un T-shirt noir posé sur une table en bois, éclairage studio cinématique..."
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                ></textarea>
+                                
+                                <button 
+                                    onClick={generateContent}
+                                    disabled={isGenerating}
+                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${isGenerating ? 'bg-zinc-700 cursor-not-allowed' : 'bg-white text-black hover:bg-gray-200'}`}
+                                >
+                                    {isGenerating ? (
+                                        <span>Génération en cours...</span>
+                                    ) : (
+                                        <>
+                                            <span>Générer avec Gemini</span>
+                                            <span className="text-xs bg-black text-white px-2 py-0.5 rounded-full">-{activeTab === 'image' ? 1 : 5}c</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </aside>
+
+                        {/* Zone Centrale (Canvas / Résultat) */}
+                        <section className="flex-1 glass rounded-3xl p-1 flex items-center justify-center relative min-h-[500px] overflow-hidden bg-zinc-900/50">
+                            
+                            {/* Grille de fond */}
+                            <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+
+                            {isGenerating ? (
+                                <div className="text-center animate-pulse">
+                                    <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                                    <p className="text-indigo-300 font-medium">L'IA travaille sur votre design...</p>
+                                </div>
+                            ) : result ? (
+                                <div className="relative group max-w-full max-h-full">
+                                    <img src={result} alt="Resultat" className="rounded-xl shadow-2xl max-h-[600px] object-contain" />
+                                    <div className="absolute bottom-4 right-4 bg-black/80 px-3 py-1 rounded text-xs text-white opacity-50">Hadia AI Generated</div>
+                                </div>
+                            ) : (
+                                <div className="text-center text-gray-500">
+                                    <p className="text-6xl mb-4">🎨</p>
+                                    <h3 className="text-xl font-medium text-gray-400">L'espace de création est vide</h3>
+                                    <p className="text-sm mt-2">Configurez votre projet à gauche pour commencer.</p>
+                                </div>
+                            )}
+
+                        </section>
+                    </main>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        // Initialisation des icônes Lucide après le rendu
+        setTimeout(() => {
+            lucide.createIcons();
+        }, 100);
+    </script>
 </body>
-    </html>
+</html>
